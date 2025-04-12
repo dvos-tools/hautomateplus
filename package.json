@@ -1,0 +1,28 @@
+{
+  "name": "eventha",
+  "version": "1.0.0",
+  "description": "Home Assistant WebSocket Event Listener",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc -w"
+  },
+  "keywords": [
+    "home-assistant",
+    "websocket",
+    "events"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.0",
+    "dotenv": "^16.0.0",
+    "osascript": "^1.2.0",
+    "ws": "^8.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
