@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import { HomeAssistantClient } from './client/HomeAssistantClient';
-import { AppleScriptExecutor } from './utils/appleScript';
+import { HomeAssistantClient } from '..';
+import { AppleScriptExecutor } from '../utils/appleScript';
 
 // Load environment variables
 dotenv.config();
@@ -59,9 +59,4 @@ if (process.send) {
 }
 
 // Log startup
-console.log('Home Assistant Client started');
-
-export { HomeAssistantClient } from './client/HomeAssistantClient';
-export { HomeAssistantWebSocket } from './client/HomeAssistantWebSocket';
-export * from './types/homeassistant';
-export * from './types/monitoring';
+console.log('Home Assistant Local Control Example Started'); 
