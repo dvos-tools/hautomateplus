@@ -1,6 +1,17 @@
-# Home Assistant Event Listener
+# HAutomatePlus
 
-A TypeScript application that connects to Home Assistant's WebSocket API and listens for all events.
+A TypeScript application that extends Home Assistant's automation capabilities by enabling local automation execution on macOS. This project serves as a bridge between Home Assistant events and local macOS automation capabilities.
+
+## Features
+
+- WebSocket connection to Home Assistant
+- Authentication handling
+- Event subscription and processing
+- Local automation execution on macOS
+- Automatic reconnection
+- Clean shutdown handling
+- TypeScript support
+- Environment variable configuration
 
 ## Setup
 
@@ -37,19 +48,24 @@ The application will:
 - Connect to your Home Assistant instance
 - Authenticate using your access token
 - Subscribe to all events
-- Log all received events to the console
+- Process events and execute local automations as configured
 
 To run in development mode with automatic recompilation:
 ```bash
 npm run dev
 ```
 
-## Features
+## Local Automation
 
-- WebSocket connection to Home Assistant
-- Authentication handling
-- Event subscription
-- Automatic reconnection
-- Clean shutdown handling
-- TypeScript support
-- Environment variable configuration 
+HAutomatePlus allows you to execute local automations on your macOS system in response to Home Assistant events. This provides capabilities that are not available through the standard Home Assistant companion app.
+
+### Example Use Cases
+
+- Execute local scripts in response to Home Assistant events
+- Run macOS-specific automations
+- Integrate with local system services
+- Perform actions that require local system access
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. 

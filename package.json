@@ -1,7 +1,7 @@
 {
-  "name": "eventha",
+  "name": "hautomateplus",
   "version": "1.0.0",
-  "description": "Home Assistant WebSocket Event Listener",
+  "description": "Home Assistant Local Automation Extension for macOS",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

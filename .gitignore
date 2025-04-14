@@ -7,5 +7,6 @@ dist/
 .DS_Store
 **/.DS_Store
 com.eventha.plist
+com.hautomateplus.plist
 *.plist
 *.zip
