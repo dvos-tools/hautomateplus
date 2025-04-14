@@ -13,14 +13,6 @@ export interface ConnectionStats {
   errorCount: number;
 }
 
-export interface PowerState {
-  isOnBattery: boolean;
-  batteryLevel: number | null;
-  isCharging: boolean;
-  isLowPowerMode: boolean;
-  systemPowerState: 'normal' | 'low-power' | 'sleep' | 'unknown';
-}
-
 export interface ConnectionHealth {
   isHealthy: boolean;
   lastHeartbeat: Date | null;

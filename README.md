@@ -1,71 +1,153 @@
-# HAutomatePlus
+# Home Assistant Local Control
 
-A TypeScript application that extends Home Assistant's automation capabilities by enabling local automation execution on macOS. This project serves as a bridge between Home Assistant events and local macOS automation capabilities.
+A Node.js library for integrating with Home Assistant and controlling your local system.
 
 ## Features
 
-- WebSocket connection to Home Assistant
-- Authentication handling
-- Event subscription and processing
-- Local automation execution on macOS
-- Automatic reconnection
-- Clean shutdown handling
-- TypeScript support
-- Environment variable configuration
+- Connect to Home Assistant via WebSocket
+- Receive local control events from Home Assistant
+- Execute system control commands based on events
+- Monitor connection health and statistics
 
-## Setup
+## Installation
 
-1. Install dependencies:
 ```bash
-npm install
+npm install hautomateplus
 ```
-
-2. Configure environment variables:
-   - Copy `.env.example` to `.env`
-   - Update the following variables in `.env`:
-     - `HA_URL`: Your Home Assistant WebSocket URL (e.g., `ws://your-home-assistant-ip:8123/api/websocket`)
-     - `HA_ACCESS_TOKEN`: Your long-lived access token from Home Assistant
-
-   To get a long-lived access token:
-   1. Log in to your Home Assistant instance
-   2. Click on your profile name (bottom left)
-   3. Scroll down to "Long-Lived Access Tokens"
-   4. Create a new token
 
 ## Usage
 
-1. Build the application:
-```bash
-npm run build
+### Basic Setup
+
+```typescript
+import { HomeAssistantClient, SystemControlService } from 'hautomateplus';
+
+// Create a client with your Home Assistant URL and access token
+const client = new HomeAssistantClient(HA_URL, HA_ACCESS_TOKEN);
+
+// Listen for local control events
+client.on('local_control_event', async (event) => {
+  console.log('Local control event:', event);
+  
+  // Execute the appropriate system control command
+  await SystemControlService.executeCommand(event.data);
+});
+
+// Close the client when done
+client.close();
 ```
 
-2. Start the application:
-```bash
-npm start
+### System Control Commands
+
+The `SystemControlService` provides the following system control commands:
+
+- **Lock**: Lock your computer (Command+Control+Q)
+- **VolumeUp**: Increase system volume
+- **VolumeDown**: Decrease system volume
+- **Mute**: Mute system audio
+- **Unmute**: Unmute system audio
+- **Notification**: Display a notification
+
+### Volume Control
+
+The `VolumeControl` utility provides native volume control without requiring AppleScript permissions:
+
+```typescript
+import { VolumeControl } from 'hautomateplus';
+
+// Get current volume
+const volume = await VolumeControl.getVolume();
+console.log(`Current volume: ${volume}%`);
+
+// Increase volume by 10
+await VolumeControl.increaseVolume();
+
+// Decrease volume by 5
+await VolumeControl.decreaseVolume(5);
+
+// Set volume to 50%
+await VolumeControl.setVolume(50);
+
+// Mute audio
+await VolumeControl.setMute(true);
+
+// Unmute audio
+await VolumeControl.setMute(false);
+
+// Toggle mute state
+const isMuted = await VolumeControl.toggleMute();
+console.log(`Audio is now ${isMuted ? 'muted' : 'unmuted'}`);
 ```
 
-The application will:
-- Connect to your Home Assistant instance
-- Authenticate using your access token
-- Subscribe to all events
-- Process events and execute local automations as configured
+### Example: Local Control Event
 
-To run in development mode with automatic recompilation:
-```bash
-npm run dev
+```typescript
+// Example event data from Home Assistant
+const eventData = {
+  action: 'lock',
+  message: 'Locking computer from Home Assistant'
+};
+
+// Execute the command
+await SystemControlService.executeCommand(eventData);
 ```
 
-## Local Automation
+## Home Assistant Configuration
 
-HAutomatePlus allows you to execute local automations on your macOS system in response to Home Assistant events. This provides capabilities that are not available through the standard Home Assistant companion app.
+To use this library with Home Assistant, you need to:
 
-### Example Use Cases
+1. Create a long-lived access token in Home Assistant
+2. Set up an automation that triggers a local control event
+3. Configure the event with the appropriate action and message
 
-- Execute local scripts in response to Home Assistant events
-- Run macOS-specific automations
-- Integrate with local system services
-- Perform actions that require local system access
+### Example Home Assistant Automation
 
-## Contributing
+```yaml
+automation:
+  - alias: "Lock Computer"
+    trigger:
+      - platform: event
+        event_type: lock_computer
+    action:
+      - service: event.fire
+        data:
+          event_type: local-control
+          event_data:
+            action: lock
+            message: "Locking computer from Home Assistant"
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request. 
+## API Reference
+
+### HomeAssistantClient
+
+```typescript
+class HomeAssistantClient extends EventEmitter {
+  constructor(url: string, accessToken: string);
+  close(): void;
+  getConnectionHealth(): ConnectionHealth;
+}
+```
+
+### SystemControlService
+
+```typescript
+class SystemControlService {
+  static executeCommand(eventData: LocalControlEventData): Promise<void>;
+  static executeLockCommand(message?: string): Promise<void>;
+  static executeNotificationCommand(message: string): Promise<void>;
+}
+```
+
+### VolumeControl
+
+```typescript
+class VolumeControl {
+  static getVolume(): Promise<number>;
+  static setVolume(level: number): Promise<void>;
+  static increaseVolume(amount?: number): Promise<void>;
+  static decreaseVolume(amount?: number): Promise<void>;
+  static setMute(mute: boolean): Promise<void>;
+  static toggleMute(): Promise<boolean>;
+}
+```

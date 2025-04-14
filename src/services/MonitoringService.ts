@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { PowerState, ConnectionStats, ConnectionHealth } from '../types/monitoring';
+import { ConnectionStats, ConnectionHealth } from '../types/monitoring';
 
 const execAsync = promisify(exec);
 
@@ -29,14 +29,6 @@ export class MonitoringService {
     packetLoss: 0
   };
 
-  private powerState: PowerState = {
-    isOnBattery: false,
-    batteryLevel: null,
-    isCharging: false,
-    isLowPowerMode: false,
-    systemPowerState: 'unknown'
-  };
-
   private monitoringInterval: NodeJS.Timeout | null = null;
   private readonly HEARTBEAT_INTERVAL = 30000; // 30 seconds
   private readonly MAX_MISSED_HEARTBEATS = 3;
@@ -46,43 +38,10 @@ export class MonitoringService {
   }
 
   private async startMonitoring(): Promise<void> {
-    // Start power monitoring
-    await this.updatePowerState();
-    setInterval(() => this.updatePowerState(), 60000); // Update every minute
-
     // Start connection monitoring
     this.monitoringInterval = setInterval(() => {
       this.checkConnectionHealth();
     }, this.HEARTBEAT_INTERVAL);
-  }
-
-  private async updatePowerState(): Promise<void> {
-    try {
-      // Get battery info
-      const { stdout: batteryInfo } = await execAsync('pmset -g batt');
-      const batteryMatch = batteryInfo.match(/(\d+)%; (charging|discharging|AC attached)/);
-      
-      if (batteryMatch) {
-        this.powerState.batteryLevel = parseInt(batteryMatch[1]);
-        this.powerState.isCharging = batteryMatch[2] === 'charging';
-        this.powerState.isOnBattery = batteryMatch[2] === 'discharging';
-      }
-
-      // Get power mode
-      const { stdout: powerMode } = await execAsync('pmset -g');
-      this.powerState.isLowPowerMode = powerMode.includes('lowpowermode 1');
-      
-      // Determine system power state
-      if (this.powerState.isLowPowerMode) {
-        this.powerState.systemPowerState = 'low-power';
-      } else if (!this.powerState.isOnBattery) {
-        this.powerState.systemPowerState = 'normal';
-      } else {
-        this.powerState.systemPowerState = 'normal';
-      }
-    } catch (error) {
-      console.error('Error updating power state:', error);
-    }
   }
 
   private checkConnectionHealth(): void {
@@ -146,16 +105,8 @@ export class MonitoringService {
     }
   }
 
-  public getStats(): ConnectionStats {
-    return { ...this.stats };
-  }
-
   public getHealth(): ConnectionHealth {
     return { ...this.health };
-  }
-
-  public getPowerState(): PowerState {
-    return { ...this.powerState };
   }
 
   public stop(): void {

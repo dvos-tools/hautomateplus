@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { HomeAssistantClient } from './client/HomeAssistantClient';
-import { AppleScriptExecutor } from './utils/appleScript';
+import { SystemControlService } from './services/SystemControlService';
 
 // Load environment variables
 dotenv.config();
@@ -22,13 +22,11 @@ client.on('local_control_event', async (event) => {
     time: event.time_fired,
   });
 
-  // Only run AppleScript if action is "lock"
-  if (event.data?.action === 'lock') {
-    try {
-      await AppleScriptExecutor.executeLockCommand(event.data);
-    } catch (error) {
-      console.error('Failed to execute lock command:', error);
-    }
+  try {
+    // Execute the appropriate system control command based on the action
+    await SystemControlService.executeCommand(event.data);
+  } catch (error) {
+    console.error('Failed to execute system control command:', error);
   }
 });
 
@@ -63,5 +61,7 @@ console.log('Home Assistant Client started');
 
 export { HomeAssistantClient } from './client/HomeAssistantClient';
 export { HomeAssistantWebSocket } from './client/HomeAssistantWebSocket';
+export { SystemControlService } from './services/SystemControlService';
+export { VolumeControl } from './utils/volumeControl';
 export * from './types/homeassistant';
 export * from './types/monitoring';
