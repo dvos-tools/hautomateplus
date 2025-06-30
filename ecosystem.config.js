@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: 'home-assistant-local-control',
-    script: 'dist/examples/local-control.js',
+    script: 'dist/examples/05-full-app.js',
     watch: false,
     autorestart: true,
     max_restarts: 10,

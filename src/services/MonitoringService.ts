@@ -109,6 +109,10 @@ export class MonitoringService {
     return { ...this.health };
   }
 
+  public getStats(): ConnectionStats {
+    return { ...this.stats };
+  }
+
   public stop(): void {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);

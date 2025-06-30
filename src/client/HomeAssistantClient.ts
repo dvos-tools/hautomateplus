@@ -1,7 +1,7 @@
 import { HomeAssistantWebSocket } from './HomeAssistantWebSocket';
 import { EventEmitter } from 'events';
 import { HAEvent } from '../types/homeassistant';
-import { ConnectionHealth } from '../types/monitoring';
+import { ConnectionHealth, ConnectionStats } from '../types/monitoring';
 
 export class HomeAssistantClient extends EventEmitter {
   private ws: HomeAssistantWebSocket;
@@ -25,6 +25,10 @@ export class HomeAssistantClient extends EventEmitter {
 
   public getConnectionHealth(): ConnectionHealth {
     return this.ws.getConnectionHealth();
+  }
+
+  public getConnectionStats(): ConnectionStats {
+    return this.ws.getConnectionStats();
   }
 
   public close(): void {
