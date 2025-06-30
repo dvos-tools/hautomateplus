@@ -40,9 +40,36 @@ client.on('local_control_event', async (event) => {
 - `mute` / `unmute` - Control audio
 - `notification` - Show system notifications
 
-## Production
+## Production & Background Processing
 
-If you want to run this as a standalone service (not imported into your app), check out the [PM2 guide](./docs/PM2_USAGE.md).
+If you want to run this as a standalone service (not imported into your app), check out the [PM2 guide](./docs/4-pm2-setup.md).
+
+### Background Process Management
+
+The app includes enhanced reliability features for running as a background process:
+
+- **Automatic reconnection** with exponential backoff
+- **Health monitoring** with detailed connection statistics
+- **Graceful shutdown** handling
+- **Enhanced logging** with configurable levels
+- **PM2 integration** with proper process management
+
+### Testing & Monitoring
+
+Use the included testing tools to verify and monitor your setup:
+
+```bash
+# Test connection to Home Assistant
+npm run test:connection
+
+# Monitor PM2-managed background process
+npm run pm2:monitor
+
+# View live logs
+npm run pm2:logs
+```
+
+See the [testing documentation](./testing/README.md) for detailed troubleshooting guides.
 
 ## Docs
 
@@ -50,6 +77,7 @@ If you want to run this as a standalone service (not imported into your app), ch
 - [🏠 Home Assistant Setup](./docs/1-home-assistant-setup.md) - Configure Home Assistant
 - [⚙️ Configuration](./docs/2-configuration.md) - Enable/disable features
 - [🚀 PM2 Setup](./docs/4-pm2-setup.md) - Run as standalone service
+- [🧪 Testing & Monitoring](./testing/README.md) - Troubleshooting and monitoring tools
 
 ## Permissions
 

@@ -14,12 +14,16 @@ export class HomeAssistantWebSocket extends EventEmitter {
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private isShuttingDown: boolean = false;
   private heartbeatInterval: NodeJS.Timeout | null = null;
-  private readonly HEARTBEAT_INTERVAL = 30000; // 30 seconds
+  private readonly HEARTBEAT_INTERVAL = parseInt(process.env.HEARTBEAT_INTERVAL || '30000'); // 30 seconds
   private monitoringService: MonitoringService;
+  private connectionStartTime: number = 0;
+  private lastActivityTime: number = 0;
 
   constructor(private readonly url: string, private readonly accessToken: string) {
     super();
     this.monitoringService = new MonitoringService();
+    this.connectionStartTime = Date.now();
+    this.lastActivityTime = Date.now();
     this.ws = this.createWebSocket();
     this.setupEventListeners();
     this.setupSystemEventListeners();
@@ -33,6 +37,8 @@ export class HomeAssistantWebSocket extends EventEmitter {
     this.ws.on('open', () => {
       console.log('Connected to Home Assistant');
       this.reconnectAttempts = 0;
+      this.connectionStartTime = Date.now();
+      this.lastActivityTime = Date.now();
       this.monitoringService.recordConnection(true);
       this.authenticate();
       this.startHeartbeat();
@@ -40,6 +46,7 @@ export class HomeAssistantWebSocket extends EventEmitter {
 
     this.ws.on('message', (data: Buffer) => {
       try {
+        this.lastActivityTime = Date.now();
         const message: HAMessage = JSON.parse(data.toString());
         this.handleMessage(message);
       } catch (error) {
@@ -110,6 +117,9 @@ export class HomeAssistantWebSocket extends EventEmitter {
         const latency = Date.now() - startTime;
         this.monitoringService.recordHeartbeat(latency);
       });
+    } else {
+      console.warn('WebSocket not open during heartbeat, attempting reconnect');
+      this.handleReconnect();
     }
   }
 
