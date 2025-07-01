@@ -9,6 +9,7 @@ This directory contains a native Swift implementation for controlling macOS syst
 - **Mute/Unmute**: Control audio mute state
 - **Toggle Mute**: Toggle between muted and unmuted states
 - **Get Volume**: Retrieve current volume level
+- **Smart Device Detection**: Automatically finds the currently active output device
 
 ## Building
 
@@ -93,6 +94,7 @@ const isMuted = await VolumeControl.toggleMute();
 - **Reliability**: No dependency on AppleScript execution
 - **Precision**: Direct control over audio properties
 - **Error Handling**: Better error reporting and handling
+- **Smart Device Selection**: Automatically detects and uses the currently active output device
 
 ## Requirements
 

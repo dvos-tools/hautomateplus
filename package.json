@@ -21,8 +21,20 @@
   },
   "keywords": [
     "home-assistant",
+    "home-automation",
+    "macos",
+    "system-control",
+    "volume-control",
+    "lock-computer",
+    "notifications",
     "websocket",
-    "events"
+    "automation",
+    "smart-home",
+    "coreaudio",
+    "swift",
+    "native",
+    "desktop-automation",
+    "system-automation"
   ],
   "author": "",
   "license": "ISC",

@@ -19,10 +19,6 @@ It's a **Node.js library** that connects your Mac to Home Assistant. When Home A
 
 ## Quick Start
 
-```bash
-npm install hautomateplus
-```
-
 ```typescript
 import { HomeAssistantClient, SystemControlService } from 'hautomateplus';
 

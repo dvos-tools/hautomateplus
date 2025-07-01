@@ -12,10 +12,6 @@ A Node.js library that lets you control your Mac from Home Assistant. Lock your 
 
 ## Quick Start
 
-```bash
-npm install hautomateplus
-```
-
 ```typescript
 import { HomeAssistantClient, SystemControlService } from 'hautomateplus';
 
@@ -87,7 +83,7 @@ Or manually set them by going into Settings > Privacy & Security > Accessibility
 
 ## Native Volume Control
 
-The volume control uses a native Swift binary for better performance and reliability. Before using volume control features:
+The volume control uses a native Swift binary for better performance and reliability. It intelligently detects the currently active output device for precise control. Before using volume control features:
 
 1. Build the native binary: `npm run build:native`
 2. The binary will be created at `native/volume_control`
