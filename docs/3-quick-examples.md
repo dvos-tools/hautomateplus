@@ -18,8 +18,16 @@ client.on('local_control_event', async (event) => {
 
 ## Volume Control
 
+The volume control uses a native Swift implementation for better performance and reliability.
+
 ```typescript
 import { VolumeControl } from 'hautomateplus';
+
+// Check if native binary is available
+const isAvailable = await VolumeControl.isAvailable();
+if (!isAvailable) {
+  console.log('Native volume control not available. Run: npm run build:native');
+}
 
 // Get current volume
 const volume = await VolumeControl.getVolume();
@@ -31,7 +39,8 @@ await VolumeControl.increaseVolume(10);
 await VolumeControl.decreaseVolume(5);
 
 // Mute control
-await VolumeControl.setMute(true);
+await VolumeControl.mute();
+await VolumeControl.unmute();
 await VolumeControl.toggleMute();
 ```
 

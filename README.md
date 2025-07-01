@@ -28,10 +28,11 @@ client.on('local_control_event', async (event) => {
 
 ## What you need
 
-- **macOS** (uses AppleScript for system control)
+- **macOS** (uses native Swift CoreAudio for volume control, AppleScript for other features)
 - **Node.js** 16+
 - **Home Assistant** instance
 - **Accessibility permissions** (macOS will prompt you)
+- **Native binary** (run `npm run build:native` to build the Swift volume control binary)
 
 ## Supported Commands
 
@@ -83,3 +84,11 @@ See the [testing documentation](./testing/README.md) for detailed troubleshootin
 
 macOS will ask for Accessibility permissions when you first use system control features. Just click "Allow" - it's needed to control your system. 
 Or manually set them by going into Settings > Privacy & Security > Accessibility and enabling hautomateplus.
+
+## Native Volume Control
+
+The volume control uses a native Swift binary for better performance and reliability. Before using volume control features:
+
+1. Build the native binary: `npm run build:native`
+2. The binary will be created at `native/volume_control`
+3. Volume control will automatically use the native implementation

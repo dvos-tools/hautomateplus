@@ -35,10 +35,11 @@ client.on('local_control_event', async (event) => {
 
 ## What You Need
 
-- **macOS** (uses AppleScript)
+- **macOS** (uses native Swift CoreAudio for volume control, AppleScript for other features)
 - **Node.js** 16+
 - **Home Assistant** instance
 - **Accessibility permissions** (macOS will prompt)
+- **Native binary** (run `npm run build:native` for volume control)
 
 ## Two Ways to Use
 

@@ -44,14 +44,14 @@ export class SystemControlService {
           console.warn('Mute endpoint is disabled');
           return Promise.resolve();
         }
-        return VolumeControl.setMute(true);
+        return VolumeControl.mute();
         
       case 'unmute':
         if (!isEndpointEnabled('unmute')) {
           console.warn('Unmute endpoint is disabled');
           return Promise.resolve();
         }
-        return VolumeControl.setMute(false);
+        return VolumeControl.unmute();
         
       case 'notification':
         if (!isEndpointEnabled('notification')) {

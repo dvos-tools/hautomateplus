@@ -1,35 +1,31 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { join } from 'path';
 
 const execAsync = promisify(exec);
 
 /**
- * Utility for controlling system volume using AppleScript
+ * Native Volume Control using Swift CoreAudio implementation
  * 
- * Note: This utility requires system permissions to control volume settings.
- * When first used, macOS will prompt the user to grant permission for the application
- * to control system settings. The user must grant this permission for the volume
- * control functions to work properly.
+ * This provides a more native and efficient way to control system volume
  * 
- * To grant permissions:
- * 1. When prompted by macOS, click "Allow" to grant permission
- * 2. If permission was denied, go to System Preferences > Security & Privacy > Privacy > Accessibility
- * 3. Find your application in the list and check the box next to it
- * 4. You may need to restart the application after granting permissions
+ * Note: The Swift binary must be built before using this class.
+ * Run: npm run build:native
  */
 export class VolumeControl {
+  private static binaryPath = join(__dirname, '../../native/volume_control');
+
   /**
    * Get the current system volume level (0-100)
    * @returns A promise that resolves with the current volume level
    */
   static async getVolume(): Promise<number> {
     try {
-      // Use osascript to get the current volume
-      const { stdout } = await execAsync('osascript -e "output volume of (get volume settings)"');
+      const { stdout } = await execAsync(`${this.binaryPath} get`);
       return parseInt(stdout.trim(), 10);
     } catch (error) {
       console.error('Error getting volume:', error);
-      return 0;
+      throw new Error(`Failed to get volume: ${error}`);
     }
   }
 
@@ -39,15 +35,13 @@ export class VolumeControl {
    * @returns A promise that resolves when the volume is set
    */
   static async setVolume(level: number): Promise<void> {
-    // Ensure level is between 0 and 100
     const safeLevel = Math.max(0, Math.min(100, level));
     
     try {
-      // Use osascript to set the volume
-      await execAsync(`osascript -e "set volume output volume ${safeLevel}"`);
+      await execAsync(`${this.binaryPath} set ${safeLevel}`);
     } catch (error) {
       console.error('Error setting volume:', error);
-      throw error;
+      throw new Error(`Failed to set volume: ${error}`);
     }
   }
 
@@ -58,12 +52,10 @@ export class VolumeControl {
    */
   static async increaseVolume(amount: number = 10): Promise<void> {
     try {
-      const currentVolume = await this.getVolume();
-      const newVolume = Math.min(100, currentVolume + amount);
-      await this.setVolume(newVolume);
+      await execAsync(`${this.binaryPath} up ${amount}`);
     } catch (error) {
       console.error('Error increasing volume:', error);
-      throw error;
+      throw new Error(`Failed to increase volume: ${error}`);
     }
   }
 
@@ -74,27 +66,36 @@ export class VolumeControl {
    */
   static async decreaseVolume(amount: number = 10): Promise<void> {
     try {
-      const currentVolume = await this.getVolume();
-      const newVolume = Math.max(0, currentVolume - amount);
-      await this.setVolume(newVolume);
+      await execAsync(`${this.binaryPath} down ${amount}`);
     } catch (error) {
       console.error('Error decreasing volume:', error);
-      throw error;
+      throw new Error(`Failed to decrease volume: ${error}`);
     }
   }
 
   /**
-   * Mute or unmute the system audio
-   * @param mute Whether to mute (true) or unmute (false) the audio
-   * @returns A promise that resolves when the mute state is set
+   * Mute the system audio
+   * @returns A promise that resolves when the audio is muted
    */
-  static async setMute(mute: boolean): Promise<void> {
+  static async mute(): Promise<void> {
     try {
-      // Use osascript to set the mute state
-      await execAsync(`osascript -e "set volume output muted ${mute}"`);
+      await execAsync(`${this.binaryPath} mute`);
     } catch (error) {
-      console.error('Error setting mute state:', error);
-      throw error;
+      console.error('Error muting audio:', error);
+      throw new Error(`Failed to mute audio: ${error}`);
+    }
+  }
+
+  /**
+   * Unmute the system audio
+   * @returns A promise that resolves when the audio is unmuted
+   */
+  static async unmute(): Promise<void> {
+    try {
+      await execAsync(`${this.binaryPath} unmute`);
+    } catch (error) {
+      console.error('Error unmuting audio:', error);
+      throw new Error(`Failed to unmute audio: ${error}`);
     }
   }
 
@@ -104,17 +105,24 @@ export class VolumeControl {
    */
   static async toggleMute(): Promise<boolean> {
     try {
-      // Get current mute state
-      const { stdout } = await execAsync('osascript -e "output muted of (get volume settings)"');
-      const isMuted = stdout.trim() === 'true';
-      
-      // Toggle mute state
-      await this.setMute(!isMuted);
-      
-      return !isMuted;
+      const { stdout } = await execAsync(`${this.binaryPath} toggle`);
+      return stdout.includes('muted');
     } catch (error) {
       console.error('Error toggling mute state:', error);
-      throw error;
+      throw new Error(`Failed to toggle mute: ${error}`);
+    }
+  }
+
+  /**
+   * Check if the native binary is available
+   * @returns A promise that resolves to true if the binary exists and is executable
+   */
+  static async isAvailable(): Promise<boolean> {
+    try {
+      await execAsync(`test -x "${this.binaryPath}"`);
+      return true;
+    } catch {
+      return false;
     }
   }
 } 

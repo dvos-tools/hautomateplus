@@ -28,3 +28,7 @@ com.eventha.plist
 com.hautomateplus.plist
 *.plist
 *.zip
+
+# Native build outputs
+native/volume_control
+native/.build/
