@@ -22,7 +22,7 @@ npm run build:native
 This will:
 1. Use Swift Package Manager to compile the Swift code
 2. Create a release build
-3. Copy the binary to `native/volume_control`
+3. Copy the binary to `native/volume/volume_control`
 
 For universal binary (both ARM64 and x86_64):
 ```bash
@@ -35,25 +35,25 @@ The binary can be used directly from command line:
 
 ```bash
 # Get current volume
-./native/volume_control get
+./native/volume/volume_control get
 
 # Set volume to 50%
-./native/volume_control set 50
+./native/volume/volume_control set 50
 
 # Increase volume by 10
-./native/volume_control up 10
+./native/volume/volume_control up 10
 
 # Decrease volume by 5
-./native/volume_control down 5
+./native/volume/volume_control down 5
 
 # Mute audio
-./native/volume_control mute
+./native/volume/volume_control mute
 
 # Unmute audio
-./native/volume_control unmute
+./native/volume/volume_control unmute
 
 # Toggle mute state
-./native/volume_control toggle
+./native/volume/volume_control toggle
 ```
 
 ## TypeScript Integration

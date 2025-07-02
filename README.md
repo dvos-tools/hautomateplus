@@ -20,6 +20,7 @@ const client = new HomeAssistantClient(HA_URL, HA_ACCESS_TOKEN);
 client.on('local_control_event', async (event) => {
   await SystemControlService.executeCommand(event.data);
 });
+
 ```
 
 ## What you need
@@ -28,7 +29,7 @@ client.on('local_control_event', async (event) => {
 - **Node.js** 16+
 - **Home Assistant** instance
 - **Accessibility permissions** (macOS will prompt you)
-- **Native binary** (run `npm run build:native` to build the Swift volume control binary)
+- **Native binaries** (run `npm run build:all` to build the Swift volume control binaries)
 
 ## Supported Commands
 
@@ -86,5 +87,5 @@ Or manually set them by going into Settings > Privacy & Security > Accessibility
 The volume control uses a native Swift binary for better performance and reliability. It intelligently detects the currently active output device for precise control. Before using volume control features:
 
 1. Build the native binary: `npm run build:native`
-2. The binary will be created at `native/volume_control`
+2. The binary will be created at `native/volume/volume_control`
 3. Volume control will automatically use the native implementation
