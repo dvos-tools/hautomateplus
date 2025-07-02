@@ -13,7 +13,7 @@ A Node.js library that lets you control your Mac from Home Assistant. Lock your 
 ## Quick Start
 
 ```typescript
-import { HomeAssistantClient, SystemControlService, BrightnessService } from 'hautomateplus';
+import { HomeAssistantClient, SystemControlService } from 'hautomateplus';
 
 const client = new HomeAssistantClient(HA_URL, HA_ACCESS_TOKEN);
 
@@ -21,25 +21,21 @@ client.on('local_control_event', async (event) => {
   await SystemControlService.executeCommand(event.data);
 });
 
-// Or use brightness service directly
-await BrightnessService.setBrightness(75);
 ```
 
 ## What you need
 
-- **macOS** (uses native Swift CoreAudio for volume control, Core Display for brightness control, AppleScript for other features)
+- **macOS** (uses native Swift CoreAudio for volume control, AppleScript for other features)
 - **Node.js** 16+
 - **Home Assistant** instance
 - **Accessibility permissions** (macOS will prompt you)
-- **Native binaries** (run `npm run build:all` to build the Swift volume and brightness control binaries)
+- **Native binaries** (run `npm run build:all` to build the Swift volume control binaries)
 
 ## Supported Commands
 
 - `lock` - Lock your computer (⌘+⌃+Q)
 - `volumeup` / `volumedown` - Adjust volume
 - `mute` / `unmute` - Control audio
-- `brightnessup` / `brightnessdown` - Adjust display brightness
-- `brightnessmin` / `brightnessmax` - Set brightness to minimum/maximum
 - `notification` - Show system notifications
 
 ## Production & Background Processing
