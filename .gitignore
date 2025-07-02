@@ -7,9 +7,6 @@ dist/
 # Environment files
 .env
 
-# Testing directory
-testing/
-
 # Logs
 logs/
 npm-debug.log*
@@ -29,6 +26,8 @@ com.hautomateplus.plist
 *.plist
 *.zip
 
+**/.build/
+
 # Native build outputs
-native/volume_control
-native/.build/
+native/volume/volume_control
+native/volume/.build/

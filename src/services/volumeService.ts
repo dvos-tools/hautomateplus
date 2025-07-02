@@ -12,8 +12,8 @@ const execAsync = promisify(exec);
  * Note: The Swift binary must be built before using this class.
  * Run: npm run build:native
  */
-export class VolumeControl {
-  private static binaryPath = join(__dirname, '../../native/volume_control');
+export class VolumeService {
+  private static binaryPath = join(__dirname, '../../native/volume/volume_control');
 
   /**
    * Get the current system volume level (0-100)

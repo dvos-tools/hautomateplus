@@ -1,8 +1,8 @@
 // Library entry point - exports only, no execution
 export { HomeAssistantClient } from './client/HomeAssistantClient';
 export { HomeAssistantWebSocket } from './client/HomeAssistantWebSocket';
+export { VolumeService } from './services/volumeService';
 export { SystemControlService } from './services/SystemControlService';
-export { VolumeControl } from './utils/volumeControl';
 export { LockService } from './services/LockService';
 export { NotificationService } from './services/NotificationService';
 export { MonitoringService } from './services/MonitoringService';

@@ -1,5 +1,5 @@
 import { LocalControlEventData } from '../types/homeassistant';
-import { VolumeControl } from '../utils/volumeControl';
+import { VolumeService } from './volumeService';
 import { LockService } from './LockService';
 import { NotificationService } from './NotificationService';
 import { isEndpointEnabled } from '../config/systemControlConfig';
@@ -30,29 +30,29 @@ export class SystemControlService {
           console.warn('Volume up endpoint is disabled');
           return Promise.resolve();
         }
-        return VolumeControl.increaseVolume();
+        return VolumeService.increaseVolume();
         
       case 'volumedown':
         if (!isEndpointEnabled('volumeDown')) {
           console.warn('Volume down endpoint is disabled');
           return Promise.resolve();
         }
-        return VolumeControl.decreaseVolume();
+        return VolumeService.decreaseVolume();
         
       case 'mute':
         if (!isEndpointEnabled('mute')) {
           console.warn('Mute endpoint is disabled');
           return Promise.resolve();
         }
-        return VolumeControl.mute();
+        return VolumeService.mute();
         
       case 'unmute':
         if (!isEndpointEnabled('unmute')) {
           console.warn('Unmute endpoint is disabled');
           return Promise.resolve();
         }
-        return VolumeControl.unmute();
-        
+        return VolumeService.unmute();
+
       case 'notification':
         if (!isEndpointEnabled('notification')) {
           console.warn('Notification endpoint is disabled');
