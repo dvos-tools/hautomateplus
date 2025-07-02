@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "build:native": "cd native/volume && swift build --configuration=release && cp .build/release/VolumeControl volume_control",
-    "build:native:universal": "cd native/volume && swift build --configuration=release --arch=arm64 --arch=x86_64 && cp .build/release/VolumeControl volume_control",
+    "build:native": "cd native/volume && swift build --configuration=release && cp .build/release/VolumeControl volume_control && cd ../notifications && chmod +x build.sh && ./build.sh",
+    "build:native:universal": "cd native/volume && swift build --configuration=release --arch=arm64 --arch=x86_64 && cp .build/release/VolumeControl volume_control && cd ../notifications && chmod +x build.sh && ./build.sh",
     "build:all": "npm run build:native && npm run build",
     "start": "node dist/examples/05-full-app.js",
     "dev": "tsc -w",
@@ -17,7 +17,7 @@
     "pm2:logs": "pm2 logs home-assistant-local-control",
     "pm2:monitor": "node testing/pm2-monitor.js",
     "test:connection": "node testing/test-connection.js",
-    "clean": "rm -rf dist logs/*.log native/volume/.build native/volume/volume_control"
+    "clean": "rm -rf dist logs/*.log native/volume/.build native/volume/volume_control native/notifications/.build native/notifications/notifications_control native/notifications/NotificationsControl.app"
   },
   "keywords": [
     "home-assistant",

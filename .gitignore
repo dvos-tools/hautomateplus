@@ -31,3 +31,6 @@ com.hautomateplus.plist
 # Native build outputs
 native/volume/volume_control
 native/volume/.build/
+native/notifications/notifications_control
+native/notifications/.build/
+native/notifications/NotificationsControl.app/
