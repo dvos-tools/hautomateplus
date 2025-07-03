@@ -33,4 +33,6 @@ EOF
 chmod +x notifications_control
 
 echo "Build complete! App bundle created at NotificationsControl.app"
-echo "Command-line wrapper created at notifications_control" 
+echo "Command-line wrapper created at notifications_control"
+echo ""
+echo "Note: This app bundle can now use native macOS dialogs and notifications." 
