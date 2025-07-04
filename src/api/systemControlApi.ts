@@ -47,7 +47,8 @@ export class SystemControlApi {
       mute: true,
       unmute: true,
       lock: true,
-      notification: true
+      notification: true,
+      shortcut: true
     };
     
     return updateSystemControlConfig(allEnabled);
@@ -64,7 +65,8 @@ export class SystemControlApi {
       mute: false,
       unmute: false,
       lock: false,
-      notification: false
+      notification: false,
+      shortcut: false
     };
     
     return updateSystemControlConfig(allDisabled);

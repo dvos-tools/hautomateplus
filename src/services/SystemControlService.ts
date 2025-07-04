@@ -1,5 +1,6 @@
 import { LocalControlEventData } from '../types/homeassistant';
 import { VolumeService } from './volumeService';
+import { ShortcutService } from './shortcutService';
 import { LockService } from './LockService';
 import { NotificationService } from './NotificationService';
 import { isEndpointEnabled } from '../config/systemControlConfig';
@@ -59,6 +60,24 @@ export class SystemControlService {
           return Promise.resolve();
         }
         return NotificationService.displayNotification(message);
+
+      case 'shortcut':
+        if (!isEndpointEnabled('shortcut')) {
+          console.warn('Shortcut endpoint is disabled');
+          return Promise.resolve();
+        }
+        // For shortcuts, the message should contain the shortcut name and optional parameter
+        // Format: "ShortcutName" or "ShortcutName:Parameter"
+        const shortcutParts = message.split(':');
+        const shortcutName = shortcutParts[0].trim();
+        const parameter = shortcutParts.length > 1 ? shortcutParts[1].trim() : undefined;
+        
+        if (!shortcutName) {
+          console.warn('No shortcut name provided');
+          return Promise.resolve();
+        }
+        
+        return ShortcutService.trigger(shortcutName, parameter);
         
       default:
         console.warn(`Unknown action: ${action}`);

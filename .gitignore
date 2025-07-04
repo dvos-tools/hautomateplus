@@ -31,3 +31,5 @@ com.hautomateplus.plist
 # Native build outputs
 native/volume/volume_control
 native/volume/.build/
+native/shortcuts/shortcut_control
+native/shortcuts/.build/
