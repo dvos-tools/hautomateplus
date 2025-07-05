@@ -1,8 +1,8 @@
 import { LocalControlEventData } from '../types/homeassistant';
 import { VolumeService } from './volumeService';
 import { ShortcutService } from './shortcutService';
-import { LockService } from './LockService';
-import { NotificationService } from './NotificationService';
+import { LockService } from './lockService';
+import { NotificationService } from './notificationService';
 import { isEndpointEnabled } from '../config/systemControlConfig';
 
 /**
