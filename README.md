@@ -37,6 +37,7 @@ client.on('local_control_event', async (event) => {
 - `volumeup` / `volumedown` - Adjust volume
 - `mute` / `unmute` - Control audio
 - `notification` - Show system notifications
+- `shortcut` - Trigger macOS Shortcuts
 
 ## Production & Background Processing
 
@@ -82,10 +83,32 @@ See the [testing documentation](./testing/README.md) for detailed troubleshootin
 macOS will ask for Accessibility permissions when you first use system control features. Just click "Allow" - it's needed to control your system. 
 Or manually set them by going into Settings > Privacy & Security > Accessibility and enabling hautomateplus.
 
-## Native Volume Control
+## Native Controls
+
+### Volume Control
 
 The volume control uses a native Swift binary for better performance and reliability. It intelligently detects the currently active output device for precise control. Before using volume control features:
 
 1. Build the native binary: `npm run build:native`
 2. The binary will be created at `native/volume/volume_control`
 3. Volume control will automatically use the native implementation
+
+### Shortcut Control
+
+The shortcut control uses a native Swift binary to trigger macOS Shortcuts via the `shortcuts://` URL scheme. This provides a reliable way to execute any Shortcut from your Home Assistant automations. Before using shortcut control features:
+
+1. Build the native binary: `npm run build:native`
+2. The binary will be created at `native/shortcuts/shortcut_control`
+3. Create your shortcuts in the Shortcuts app
+4. Use the exact shortcut name in your commands
+
+**Example:**
+```typescript
+import { ShortcutService } from 'hautomateplus';
+
+// Trigger a shortcut without parameters
+await ShortcutService.trigger('MyShortcut');
+
+// Trigger a shortcut with parameters
+await ShortcutService.trigger('ProcessText', 'Hello from Home Assistant!');
+```

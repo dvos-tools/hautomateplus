@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 import { HAMessage, HAEvent, AuthMessage, SubscribeMessage } from '../types/homeassistant';
-import { MonitoringService } from '../services/MonitoringService';
+import { MonitoringService } from '../services/monitoringService';
 import { ConnectionHealth, ConnectionStats } from '../types/monitoring';
 
 export class HomeAssistantWebSocket extends EventEmitter {

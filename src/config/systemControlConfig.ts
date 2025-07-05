@@ -14,6 +14,9 @@ export interface SystemControlConfig {
   
   // Notification endpoints
   notification: boolean;
+  
+  // Shortcut control endpoints
+  shortcut: boolean;
 }
 
 /**
@@ -30,7 +33,10 @@ export const defaultSystemControlConfig: SystemControlConfig = {
   lock: true,
   
   // Notification endpoints
-  notification: true
+  notification: true,
+  
+  // Shortcut control endpoints
+  shortcut: true
 };
 
 /**
