@@ -2,7 +2,9 @@ import dotenv from 'dotenv';
 import { 
   HomeAssistantClient, 
   SystemControlService, 
-  getSystemControlConfig
+  getSystemControlConfig,
+  DeviceEntityService,
+  DeviceInfoService
 } from '../index';
 
 // Load environment variables
@@ -31,6 +33,25 @@ function log(level: string, message: string, ...args: any[]) {
 log('info', 'Home Assistant Local Control App Starting');
 log('info', '==========================================');
 
+// Test and show device information
+async function showDeviceInfo() {
+  try {
+    const deviceInfo = await DeviceInfoService.getDeviceInfo();
+    const hasBattery = await DeviceInfoService.hasBattery();
+    
+    log('info', 'Device Information:');
+    log('info', `  Device Name: ${deviceInfo.deviceName}`);
+    log('info', `  Has Battery: ${hasBattery}`);
+    if (hasBattery) {
+      log('info', `  Battery Level: ${deviceInfo.batteryLevel}%`);
+      log('info', `  Battery Charging: ${deviceInfo.isCharging}`);
+    }
+    log('info', '');
+  } catch (error) {
+    log('error', 'Failed to get device information:', error);
+  }
+}
+
 // Show current configuration
 const config = getSystemControlConfig();
 log('info', 'Enabled endpoints:', Object.entries(config)
@@ -41,12 +62,18 @@ log('info', 'Enabled endpoints:', Object.entries(config)
 
 // Create and start the client
 let client: HomeAssistantClient;
+let deviceEntityService: DeviceEntityService;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = parseInt(process.env.MAX_RECONNECT_ATTEMPTS || '10');
 
-function createClient() {
+async function createClient() {
   try {
     client = new HomeAssistantClient(HA_URL, HA_ACCESS_TOKEN);
+    
+    // Initialize device entity service
+    deviceEntityService = new DeviceEntityService();
+    await deviceEntityService.initialize();
+    
     setupClientEventListeners();
     return client;
   } catch (error) {
@@ -78,6 +105,38 @@ function setupClientEventListeners() {
     log('error', 'Connection error:', error);
     handleConnectionError();
   });
+
+  // Set up device entity service
+  const setupDeviceEntities = async () => {
+    log('info', 'Setting up device entities...');
+    try {
+      await deviceEntityService.updateConnectionStatus(true);
+      deviceEntityService.startPeriodicUpdates(); // Update every 30 seconds (default)
+      log('info', 'Device entities service started with periodic updates');
+    } catch (error) {
+      log('error', 'Failed to setup device entities:', error);
+      // Stop periodic updates if initial setup fails
+      deviceEntityService.stopPeriodicUpdates();
+      throw error;
+    }
+  };
+  
+  // Set up device entities after a short delay to ensure connection is stable
+  setTimeout(async () => {
+    try {
+      await setupDeviceEntities();
+    } catch (error) {
+      log('error', 'Failed to setup device entities, will retry later:', error);
+      // Retry after 30 seconds
+      setTimeout(async () => {
+        try {
+          await setupDeviceEntities();
+        } catch (retryError) {
+          log('error', 'Device entities setup failed on retry:', retryError);
+        }
+      }, 30000);
+    }
+  }, 2000);
 }
 
 function handleConnectionError() {
@@ -90,13 +149,13 @@ function handleConnectionError() {
   }
   
   // Wait before attempting to recreate client
-  setTimeout(() => {
+  setTimeout(async () => {
     log('info', 'Attempting to recreate client...');
     try {
       if (client) {
         client.close();
       }
-      createClient();
+      await createClient();
       reconnectAttempts = 0; // Reset on successful creation
     } catch (error) {
       log('error', 'Failed to recreate client:', error);
@@ -150,6 +209,17 @@ const shutdown = async () => {
     clearInterval(healthCheckInterval);
   }
   
+  // Stop device entity updates and update connection status
+  if (deviceEntityService) {
+    try {
+      deviceEntityService.stopPeriodicUpdates();
+      await deviceEntityService.updateConnectionStatus(false);
+      log('info', 'Device entity service stopped');
+    } catch (error) {
+      log('error', 'Error stopping device entity service:', error);
+    }
+  }
+  
   if (client) {
     client.close();
   }
@@ -173,9 +243,12 @@ process.on('message', (msg) => {
 });
 
 // Initialize the application
-function initializeApp() {
+async function initializeApp() {
   try {
-    createClient();
+    // Show device information first
+    await showDeviceInfo();
+    
+    await createClient();
     startHealthCheck();
     
     // Notify PM2 that the application is ready
@@ -186,6 +259,7 @@ function initializeApp() {
     log('info', 'Connected to Home Assistant');
     log('info', 'Listening for local-control events...');
     log('info', 'Supported actions: lock, volumeup, volumedown, mute, unmute, notification');
+    log('info', 'Device entities will be created when connection is established');
     log('info', 'Press Ctrl+C to stop');
     
   } catch (error) {
@@ -195,4 +269,7 @@ function initializeApp() {
 }
 
 // Start the application
-initializeApp(); 
+initializeApp().catch((error) => {
+  log('error', 'Application failed to start:', error);
+  process.exit(1);
+}); 

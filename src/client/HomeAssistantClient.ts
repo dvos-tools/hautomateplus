@@ -12,6 +12,14 @@ export class HomeAssistantClient extends EventEmitter {
     this.setupEventListeners();
   }
 
+  /**
+   * Get the underlying WebSocket instance
+   * @returns The WebSocket instance
+   */
+  getWebSocket(): HomeAssistantWebSocket {
+    return this.ws;
+  }
+
   private setupEventListeners(): void {
     // Forward all events from the WebSocket client
     this.ws.on('local_control_event', (event: HAEvent) => {
