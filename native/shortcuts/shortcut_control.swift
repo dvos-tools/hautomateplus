@@ -1,13 +1,17 @@
 import Foundation
-import AppKit // For NSWorkspace and URL handling
 
 // Main function
 func main() {
     let args = CommandLine.arguments
     guard args.count > 1 else {
-        print("Usage: shortcut_control <shortcut_name> [parameter]")
-        print("Example: shortcut_control MyShortcut 'Hello World'")
+        printHelp()
         exit(1)
+    }
+    
+    // Check for help flags
+    if args[1] == "--help" || args[1] == "-h" {
+        printHelp()
+        exit(0)
     }
     
     let shortcutName = args[1]
@@ -22,34 +26,62 @@ func main() {
     }
 }
 
+func printHelp() {
+    print("Usage: shortcut_control <shortcut_name> [parameter]")
+    print("Example: shortcut_control MyShortcut 'Hello World'")
+    print("")
+    print("This tool triggers macOS Shortcuts using AppleScript with the 'Shortcuts Events' application.")
+    print("It's more reliable than URL schemes and doesn't cause focus issues.")
+}
+
 enum ShortcutControlError: Error {
-    case failedToEncodeParameter
-    case failedToCreateURL
-    case failedToOpenURL
+    case failedToExecuteScript
+    case scriptExecutionFailed
 }
 
 func triggerShortcut(shortcutName: String, parameter: String) throws {
-    // 1. Encode the parameter
-    guard let encodedParameter = parameter.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-        throw ShortcutControlError.failedToEncodeParameter
-    }
-
-    // 2. Construct the URL
-    let urlString: String
+    // Escape the shortcut name and parameter for AppleScript
+    let escapedShortcutName = shortcutName.replacingOccurrences(of: "\"", with: "\\\"")
+    let escapedParameter = parameter.replacingOccurrences(of: "\"", with: "\\\"")
+    
+    // Construct the AppleScript command
+    let script: String
     if parameter.isEmpty {
-        urlString = "shortcuts://run-shortcut?name=\(shortcutName)"
+        script = """
+        tell application "Shortcuts Events"
+            run the shortcut named "\(escapedShortcutName)"
+        end tell
+        """
     } else {
-        urlString = "shortcuts://run-shortcut?name=\(shortcutName)&input=\(encodedParameter)"
+        script = """
+        tell application "Shortcuts Events"
+            run the shortcut named "\(escapedShortcutName)" with input "\(escapedParameter)"
+        end tell
+        """
     }
-
-    guard let url = URL(string: urlString) else {
-        throw ShortcutControlError.failedToCreateURL
-    }
-
-    // 3. Open the URL
-    let success = NSWorkspace.shared.open(url)
-    if !success {
-        throw ShortcutControlError.failedToOpenURL
+    
+    // Execute the AppleScript using osascript
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+    process.arguments = ["-e", script]
+    
+    let pipe = Pipe()
+    process.standardOutput = pipe
+    process.standardError = pipe
+    
+    do {
+        try process.run()
+        process.waitUntilExit()
+        
+        if process.terminationStatus != 0 {
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: data, encoding: .utf8) {
+                print("AppleScript error: \(errorOutput)")
+            }
+            throw ShortcutControlError.scriptExecutionFailed
+        }
+    } catch {
+        throw ShortcutControlError.failedToExecuteScript
     }
 }
 
