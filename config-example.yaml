@@ -1,0 +1,84 @@
+# Home Assistant Local Control Configuration Example
+# Copy this file to config.yaml and modify as needed
+
+# System Control Configuration
+# Enable/disable specific system control features
+systemControl:
+  volume: true          # Volume control (up/down/mute/unmute)
+  brightness: true      # Screen brightness control
+  notifications: true   # System notifications
+  shortcuts: true       # macOS Shortcuts execution
+  locks: true          # System lock/unlock
+  customEntities: true  # Custom entities from shortcuts
+
+# Custom Entities Configuration
+# These entities are created by running macOS shortcuts and reading their output files
+customEntities:
+  enabled: true
+  entities:
+    - name: "Focus Mode"
+      shortcutName: "FocusMode"
+      filePath: "~/hautomateplus/focus_mode_output.txt"
+      entityType: "sensor"
+      unitOfMeasurement: "unit"
+      deviceClass: "generic"
+
+# Device Configuration
+device:
+  name: "hautomateplus"  # Device name for entities (can be overridden by HA_DEVICE_NAME env var)
+  updateInterval: 10     # Seconds between updates
+
+# Connection Configuration
+connection:
+  maxReconnectAttempts: 10  # Maximum reconnection attempts
+  heartbeatInterval: 30     # Heartbeat interval in seconds
+  logLevel: "info"          # Logging level (debug, info, warn, error)
+
+# Usage Example:
+# 1. Copy this file to config.yaml
+# 2. Modify the customEntities section with your desired entities
+# 3. Create the corresponding shortcuts in macOS Shortcuts app
+# 4. Run the application with: npm run example:05-full-app
+#
+# The app will:
+# - Read this configuration file
+# - Create the specified custom entities in Home Assistant
+# - Run the shortcuts every 30 seconds
+# - Read the output files and update the entities
+#
+# All entities will be created under the same device (hautomateplus_device)
+# with entity IDs like: sensor.hautomateplus_mysensor
+
+# Shortcut Requirements:
+# - The shortcut must exist in the macOS Shortcuts app
+# - The shortcut should write its output to the specified file path
+# - The app will run the shortcut every 30 seconds by default
+# - The shortcut should complete quickly (under 5 seconds recommended)
+# - Output files should contain a single value (string or number)
+
+# File Path Notes:
+# - Use "~/" to reference the user's home directory (e.g., "~/hautomateplus/my_shortcut_output.txt")
+# - The "~" will be automatically expanded to the full home directory path
+# - You can also use absolute paths if needed
+# - Files are created by the shortcuts, not manually
+
+# File format requirements:
+# - Files should contain a single value (string or number)
+# - Values are read as strings and sent to Home Assistant
+# - Files are created by the shortcuts, not manually
+# - Missing files will show as "unavailable" in Home Assistant
+# - File reading errors will show as "error" in Home Assistant
+
+# Supported entity types:
+# - sensor: For numeric or text values
+# - binary_sensor: For on/off states (use "on", "off", "true", "false", "1", "0")
+
+# Supported device classes for sensors:
+# - temperature, humidity, pressure, illuminance, power, current, voltage
+# - energy, gas, data_size, data_rate, distance, duration, frequency
+# - signal_strength, timestamp, volume, weight, speed, angle, percentage
+
+# Supported device classes for binary sensors:
+# - battery, cold, connectivity, door, garage_door, gas, heat, light
+# - lock, moisture, motion, moving, occupancy, opening, plug, power
+# - presence, problem, running, safety, smoke, sound, vibration, window 

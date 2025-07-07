@@ -1,0 +1,33 @@
+# Home Assistant Local Control Configuration
+# This file configures custom entities that sync data from macOS shortcuts
+
+# System Control Configuration
+systemControl:
+  volume: true
+  brightness: true
+  notifications: true
+  shortcuts: true
+  locks: true
+  customEntities: true
+
+# Custom Entities Configuration
+# These entities are created by running macOS shortcuts and reading their output files
+customEntities:
+  enabled: true
+  entities:
+    - name: "Focus Mode"
+      shortcutName: "FocusMode"
+      filePath: "~/hautomateplus/focus_mode_output.txt"
+      entityType: "sensor"
+      deviceClass: "enum"
+
+# Device Configuration
+device:
+  name: "hautomateplus"  # Default device name, can be overridden by HA_DEVICE_NAME env var
+  updateInterval: 10  # Seconds between updates
+
+# Connection Configuration
+connection:
+  maxReconnectAttempts: 10
+  heartbeatInterval: 30
+  logLevel: "info" 

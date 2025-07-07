@@ -9,6 +9,7 @@ export { NotificationService } from './services/notificationService';
 export { MonitoringService } from './services/monitoringService';
 export { DeviceInfoService } from './services/deviceInfoService';
 export { DeviceEntityService } from './services/deviceEntityService';
+
 export { SystemControlApi } from './api/systemControlApi';
 
 // Configuration exports
@@ -21,5 +22,11 @@ export {
 } from './config/systemControlConfig';
 
 // Type exports
-export * from './types/homeassistant';
+export type { 
+  HAEvent, 
+  LocalControlEventData,
+  CustomEntity,
+  CustomEntityConfig,
+  CustomEntityState
+} from './types/homeassistant';
 export * from './types/monitoring';

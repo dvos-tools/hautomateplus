@@ -18,6 +18,8 @@
     "pm2:monitor": "node testing/pm2-monitor.js",
     "test:connection": "node testing/test-connection.js",
     "test:device-info": "node testing/test-device-info.js",
+    "test:custom-entities": "node testing/test-custom-entities.js",
+    "example:custom-entities": "npm run build && node dist/examples/08-custom-entities.js",
     "clean": "rm -rf dist logs/*.log native/volume/.build native/volume/volume_control native/shortcuts/.build native/shortcuts/shortcut_control"
   },
   "keywords": [

@@ -1,8 +1,28 @@
 import { DeviceInfoService } from './deviceInfoService';
+import { ShortcutService } from './shortcutService';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 export interface DeviceEntities {
   connectionStatus: string;
   deviceName: string;
+}
+
+export interface CustomEntity {
+  name: string;
+  shortcutName: string;
+  filePath: string;
+  entityType?: string;
+  unitOfMeasurement?: string;
+  deviceClass?: string;
+  stateClass?: string;
+  entityId?: string;
+}
+
+export interface CustomEntityConfig {
+  enabled: boolean;
+  entities: CustomEntity[];
 }
 
 export class DeviceEntityService {
@@ -10,10 +30,10 @@ export class DeviceEntityService {
   private token: string;
   private deviceName: string = '';
   private entities: DeviceEntities | null = null;
+  private customEntities: CustomEntity[] = [];
   private updateInterval: NodeJS.Timeout | null = null;
   private readonly UPDATE_INTERVAL = parseInt(process.env.DEVICE_ENTITY_UPDATE_INTERVAL || '30000'); // Configurable interval
   private lastKnownStates: Record<string, { state: string; attributes: Record<string, any> }> = {};
-
   constructor() {
     this.baseUrl = process.env.HA_URL?.replace('ws://', 'http://').replace('wss://', 'https://').replace('/api/websocket', '') || '';
     this.token = process.env.HA_ACCESS_TOKEN || process.env.HA_TOKEN || '';
@@ -22,12 +42,21 @@ export class DeviceEntityService {
     }
   }
 
-  async initialize(): Promise<void> {
+  async initialize(customEntityConfig?: CustomEntityConfig): Promise<void> {
     this.deviceName = 'hautomateplus';
     this.entities = {
       connectionStatus: `binary_sensor.${this.deviceName}_connection`,
       deviceName: `sensor.${this.deviceName}_device_name`
     };
+    
+    // Initialize custom entities if provided
+    if (customEntityConfig?.enabled && customEntityConfig.entities) {
+      this.customEntities = customEntityConfig.entities.map(entity => ({
+        ...entity,
+        entityId: entity.entityId || `${entity.entityType || 'sensor'}.${this.deviceName}_${entity.name.toLowerCase().replace(/\s+/g, '_')}`
+      }));
+      console.log(`Initialized ${this.customEntities.length} custom entities`);
+    }
     
     console.log('Device entities initialized:', this.entities);
     console.log('Device will be created automatically when entities are updated with device information');
@@ -76,6 +105,98 @@ export class DeviceEntityService {
     }
   }
 
+  private async readShortcutOutput(filePath: string): Promise<string> {
+    try {
+      // Expand ~ to home directory
+      const expandedPath = filePath.startsWith('~') 
+        ? path.join(os.homedir(), filePath.slice(1))
+        : filePath;
+      
+      if (!fs.existsSync(expandedPath)) {
+        console.log(`Output file does not exist: ${expandedPath}`);
+        return 'unknown';
+      }
+      
+      const content = fs.readFileSync(expandedPath, 'utf8').trim();
+      return content || 'unknown';
+    } catch (error) {
+      console.error(`Error reading shortcut output file ${filePath}:`, error);
+      return 'error';
+    }
+  }
+
+  private async registerEntityInRegistry(entity: CustomEntity): Promise<void> {
+    const uniqueId = `hautomateplus_${entity.name.toLowerCase().replace(/\s+/g, '_')}`;
+    const url = `${this.baseUrl}/api/config/entity_registry/create`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          entity_id: entity.entityId!,
+          name: `${this.deviceName} ${entity.name}`,
+          platform: 'hautomateplus',
+          unique_id: uniqueId,
+          device_id: 'hautomateplus_device',
+          ...(entity.deviceClass && { device_class: entity.deviceClass }),
+          ...(entity.unitOfMeasurement && { unit_of_measurement: entity.unitOfMeasurement }),
+          ...(entity.stateClass && { state_class: entity.stateClass })
+        })
+      });
+      
+      if (response.ok) {
+        console.log(`Registered entity in registry: ${entity.entityId!}`);
+      } else {
+        // Entity might already exist, which is fine
+        console.log(`Entity registry registration response: ${response.status} for ${entity.entityId!}`);
+      }
+    } catch (error) {
+      console.log(`Entity registry registration failed for ${entity.entityId!}:`, error);
+    }
+  }
+
+  private async updateCustomEntities(): Promise<void> {
+    for (const entity of this.customEntities) {
+      try {
+        // Register entity in registry first (if not already registered)
+        await this.registerEntityInRegistry(entity);
+        
+        // Run the shortcut
+        await ShortcutService.triggerShortcut(entity.shortcutName);
+        
+        // Read the output file
+        const value = await this.readShortcutOutput(entity.filePath);
+        
+        // Update the entity
+        await this.updateEntity(entity.entityId!, value, {
+          friendly_name: `${this.deviceName} ${entity.name}`,
+          icon: 'mdi:script-text',
+          unique_id: `hautomateplus_${entity.name.toLowerCase().replace(/\s+/g, '_')}`,
+          last_update: new Date().toISOString(),
+          ...(entity.unitOfMeasurement && { unit_of_measurement: entity.unitOfMeasurement }),
+          ...(entity.deviceClass && { device_class: entity.deviceClass }),
+          ...(entity.stateClass && { state_class: entity.stateClass })
+        });
+      } catch (error) {
+        console.error(`Failed to update custom entity ${entity.name}:`, error);
+        // Update with error state
+        await this.updateEntity(entity.entityId!, 'error', {
+          friendly_name: `${this.deviceName} ${entity.name}`,
+          icon: 'mdi:script-text',
+          unique_id: `hautomateplus_${entity.name.toLowerCase().replace(/\s+/g, '_')}`,
+          last_update: new Date().toISOString(),
+          ...(entity.unitOfMeasurement && { unit_of_measurement: entity.unitOfMeasurement }),
+          ...(entity.deviceClass && { device_class: entity.deviceClass }),
+          ...(entity.stateClass && { state_class: entity.stateClass })
+        });
+      }
+    }
+  }
+
   async createOrUpdateEntities(isConnected: boolean = true): Promise<void> {
     if (!this.entities) throw new Error('Device entities not initialized.');
     const deviceInfo = await DeviceInfoService.getDeviceInfo(isConnected);
@@ -95,6 +216,11 @@ export class DeviceEntityService {
       unique_id: 'hautomateplus_device_name',
       last_update: deviceInfo.lastUpdate
     });
+
+    // Update custom entities if any
+    if (this.customEntities.length > 0) {
+      await this.updateCustomEntities();
+    }
   }
 
   startPeriodicUpdates(interval: number = this.UPDATE_INTERVAL): void {
@@ -126,6 +252,10 @@ export class DeviceEntityService {
 
   getEntityIds(): DeviceEntities | null {
     return this.entities;
+  }
+
+  getCustomEntities(): CustomEntity[] {
+    return this.customEntities;
   }
 
   clearStateCache(): void {

@@ -4,8 +4,12 @@ import {
   SystemControlService, 
   getSystemControlConfig,
   DeviceEntityService,
-  DeviceInfoService
+  DeviceInfoService,
+  setEndpointEnabled
 } from '../index';
+import * as os from 'os';
+import * as path from 'path';
+import * as fs from 'fs';
 
 // Load environment variables
 dotenv.config();
@@ -70,15 +74,105 @@ async function createClient() {
   try {
     client = new HomeAssistantClient(HA_URL, HA_ACCESS_TOKEN);
     
-    // Initialize device entity service
+    // Initialize device entity service with custom entities
     deviceEntityService = new DeviceEntityService();
-    await deviceEntityService.initialize();
+    const customEntityConfig = await loadCustomEntityConfig();
+    await deviceEntityService.initialize(customEntityConfig);
     
     setupClientEventListeners();
     return client;
   } catch (error) {
     log('error', 'Failed to create client:', error);
     throw error;
+  }
+}
+
+async function loadCustomEntityConfig() {
+  try {
+    // Try to load configuration from YAML file
+    const configPath = path.join(process.cwd(), 'config.yaml');
+    let customEntityConfig = null;
+    
+    if (fs.existsSync(configPath)) {
+      try {
+        // Note: In a real app, you'd use a YAML parser like 'js-yaml'
+        // For now, we'll use a simple JSON fallback
+        const configContent = fs.readFileSync(configPath, 'utf8');
+        log('info', `Loading custom entities configuration from ${configPath}`);
+        
+        // Simple YAML-like parsing (basic implementation)
+        // In production, use: const yaml = require('js-yaml'); const config = yaml.load(configContent);
+        const configMatch = configContent.match(/customEntities:\s*\n([\s\S]*?)(?=\n\w|$)/);
+        if (configMatch) {
+          // Parse the customEntities section
+          const customEntitiesSection = configMatch[1];
+          const enabledMatch = customEntitiesSection.match(/enabled:\s*(true|false)/);
+          const entitiesMatch = customEntitiesSection.match(/entities:\s*\n([\s\S]*?)(?=\n\w|$)/);
+          
+          if (enabledMatch && entitiesMatch) {
+            const enabled = enabledMatch[1] === 'true';
+            const entitiesText = entitiesMatch[1];
+            
+            // Parse entities (simplified - in production use proper YAML parser)
+            const entityMatches = entitiesText.match(/- name:\s*"([^"]+)"\s*\n\s*shortcutName:\s*"([^"]+)"\s*\n\s*filePath:\s*"([^"]+)"/g);
+            
+            if (entityMatches && entityMatches.length > 0) {
+              const entities = entityMatches.map(match => {
+                const nameMatch = match.match(/name:\s*"([^"]+)"/);
+                const shortcutMatch = match.match(/shortcutName:\s*"([^"]+)"/);
+                const fileMatch = match.match(/filePath:\s*"([^"]+)"/);
+                
+                return {
+                  name: nameMatch ? nameMatch[1] : 'Unknown',
+                  shortcutName: shortcutMatch ? shortcutMatch[1] : 'Unknown',
+                  filePath: fileMatch ? fileMatch[1] : '',
+                  entityType: 'sensor',
+                  unitOfMeasurement: 'units',
+                  deviceClass: 'generic'
+                };
+              });
+              
+              customEntityConfig = {
+                enabled,
+                entities
+              };
+              
+              log('info', `Loaded ${entities.length} custom entities from config.yaml`);
+            }
+          }
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        log('warn', `Failed to parse config.yaml: ${errorMessage}`);
+      }
+    }
+    
+    // Fallback to default configuration if YAML parsing fails
+    if (!customEntityConfig) {
+      log('info', 'Using default custom entities configuration');
+      const homeDir = os.homedir();
+      const outputFile = path.join(homeDir, 'hautomateplus', 'my_shortcut_output.txt');
+      
+      customEntityConfig = {
+        enabled: true,
+        entities: [
+          {
+            name: 'MySensor',
+            shortcutName: 'MyShortcut',
+            filePath: outputFile,
+            entityType: 'sensor',
+            unitOfMeasurement: 'units',
+            deviceClass: 'generic'
+          }
+        ]
+      };
+    }
+
+    return customEntityConfig;
+    
+  } catch (error) {
+    log('error', 'Failed to load custom entity configuration:', error);
+    return { enabled: false, entities: [] };
   }
 }
 
@@ -260,6 +354,11 @@ async function initializeApp() {
     log('info', 'Listening for local-control events...');
     log('info', 'Supported actions: lock, volumeup, volumedown, mute, unmute, notification');
     log('info', 'Device entities will be created when connection is established');
+    if (config.customEntities) {
+      log('info', 'Custom entities feature is enabled');
+      log('info', 'Configuration loaded from config.yaml (if available)');
+      log('info', 'Make sure you have created the required shortcuts in macOS Shortcuts app');
+    }
     log('info', 'Press Ctrl+C to stop');
     
   } catch (error) {

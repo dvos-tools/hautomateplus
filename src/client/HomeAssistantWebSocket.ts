@@ -266,6 +266,19 @@ export class HomeAssistantWebSocket extends EventEmitter {
   }
 
   /**
+   * Send an arbitrary message to Home Assistant
+   * @param message The message to send
+   */
+  public sendArbitraryMessage(message: any): void {
+    if (!this.authenticated) {
+      console.warn('Not authenticated, cannot send message');
+      return;
+    }
+
+    this.sendMessage(message);
+  }
+
+  /**
    * Check if the WebSocket connection is authenticated and ready
    * @returns True if authenticated and connected
    */

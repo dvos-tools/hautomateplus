@@ -17,6 +17,9 @@ export interface SystemControlConfig {
   
   // Shortcut control endpoints
   shortcut: boolean;
+  
+  // Custom entities feature
+  customEntities: boolean;
 }
 
 /**
@@ -36,7 +39,10 @@ export const defaultSystemControlConfig: SystemControlConfig = {
   notification: true,
   
   // Shortcut control endpoints
-  shortcut: true
+  shortcut: true,
+  
+  // Custom entities feature
+  customEntities: false
 };
 
 /**

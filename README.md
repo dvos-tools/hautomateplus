@@ -1,114 +1,217 @@
-# Home Assistant Local Control for macOS
+# Home Assistant Local Control
 
-A Node.js library that lets you control your Mac from Home Assistant. Lock your computer, adjust volume, show notifications - all triggered by your Home Assistant automations.
+A Node.js library for controlling macOS from Home Assistant via local-control events. This library provides system control capabilities (volume, brightness, notifications, shortcuts, locks) and can create custom entities that sync data from macOS shortcuts to Home Assistant.
 
-## What it does
+## Features
 
-- 🔗 Connects to Home Assistant via WebSocket
-- 🖥️ Controls your Mac (lock, volume, notifications)
-- 🔄 Auto-reconnects if connection drops
-- ⚙️ Let's you enable/disable specific features
-- 📊 Monitors connection health
+- **System Control**: Volume, brightness, notifications, shortcuts, locks
+- **Device Entities**: Expose device status (battery, connection) to Home Assistant
+- **Custom Entities**: Create sensors from macOS shortcuts
+- **WebSocket Connection**: Real-time communication with Home Assistant
+- **Native Integration**: Uses Swift binaries for reliable system control
+- **PM2 Support**: Production-ready with PM2 process management
 
 ## Quick Start
+
+### 1. Installation
+
+```bash
+npm install hautomateplus
+```
+
+### 2. Environment Setup
+
+Create a `.env` file:
+
+```bash
+HA_URL=http://your-ha-instance:8123
+HA_ACCESS_TOKEN=your-access-token
+HA_DEVICE_NAME=hautomateplus
+LOG_LEVEL=info
+```
+
+### 3. Basic Usage
 
 ```typescript
 import { HomeAssistantClient, SystemControlService } from 'hautomateplus';
 
+// Connect to Home Assistant
 const client = new HomeAssistantClient(HA_URL, HA_ACCESS_TOKEN);
 
+// Listen for local-control events
 client.on('local_control_event', async (event) => {
   await SystemControlService.executeCommand(event.data);
 });
 
+// Keep the process running
+process.on('SIGINT', () => {
+  client.close();
+  process.exit(0);
+});
 ```
 
-## What you need
+### 4. Custom Entities
 
-- **macOS** (uses native Swift CoreAudio for volume control, AppleScript for other features)
-- **Node.js** 16+
-- **Home Assistant** instance
-- **Accessibility permissions** (macOS will prompt you)
-- **Native binaries** (run `npm run build:all` to build the Swift volume control binaries)
+Create custom entities that run macOS shortcuts and sync their output to Home Assistant:
+
+```typescript
+import { DeviceEntityService } from 'hautomateplus';
+
+// Configure custom entities
+const customEntityConfig = {
+  enabled: true,
+  entities: [
+    {
+      name: 'MySensor',
+      shortcutName: 'MyShortcut',
+      filePath: '~/hautomateplus/my_shortcut_output.txt',
+      entityType: 'sensor',
+      unitOfMeasurement: 'units',
+      deviceClass: 'generic'
+    }
+  ]
+};
+
+// Initialize device entity service with custom entities
+const deviceEntityService = new DeviceEntityService();
+await deviceEntityService.initialize(customEntityConfig);
+
+// Start periodic updates
+deviceEntityService.startPeriodicUpdates();
+```
+
+## Configuration
+
+### YAML Configuration
+
+Create a `config.yaml` file for custom entities:
+
+```yaml
+# Custom Entities Configuration
+customEntities:
+  enabled: true
+  entities:
+    - name: "MySensor"
+      shortcutName: "MyShortcut"
+      filePath: "~/hautomateplus/my_shortcut_output.txt"
+      entityType: "sensor"
+      unitOfMeasurement: "units"
+      deviceClass: "generic"
+    
+    - name: "Temperature"
+      shortcutName: "GetTemperature"
+      filePath: "~/hautomateplus/temperature_output.txt"
+      entityType: "sensor"
+      unitOfMeasurement: "°C"
+      deviceClass: "temperature"
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HA_URL` | Home Assistant URL | Required |
+| `HA_ACCESS_TOKEN` | Home Assistant access token | Required |
+| `HA_DEVICE_NAME` | Device name for entities | `hautomateplus` |
+| `LOG_LEVEL` | Logging level | `info` |
+| `MAX_RECONNECT_ATTEMPTS` | Max reconnection attempts | `10` |
 
 ## Supported Commands
 
-- `lock` - Lock your computer (⌘+⌃+Q)
-- `volumeup` / `volumedown` - Adjust volume
-- `mute` / `unmute` - Control audio
-- `notification` - Show system notifications
-- `shortcut` - Trigger macOS Shortcuts
+When Home Assistant sends a `local-control` event, you can execute these actions:
 
-## Production & Background Processing
+- `lock` - Lock your computer
+- `volumeup` - Increase volume
+- `volumedown` - Decrease volume  
+- `mute` - Mute audio
+- `unmute` - Unmute audio
+- `notification` - Show notification
 
-If you want to run this as a standalone service (not imported into your app), check out the [PM2 guide](./docs/4-pm2-setup.md).
+## Entity Structure
 
-### Background Process Management
+All entities are created under the same device in Home Assistant:
 
-The app includes enhanced reliability features for running as a background process:
+**Device Status Entities:**
+- `binary_sensor.hautomateplus_connection` - Connection status
+- `sensor.hautomateplus_device_name` - Device name
 
-- **Automatic reconnection** with exponential backoff
-- **Health monitoring** with detailed connection statistics
-- **Graceful shutdown** handling
-- **Enhanced logging** with configurable levels
-- **PM2 integration** with proper process management
+**Custom Entities:**
+- `sensor.hautomateplus_mysensor` - Custom sensor value
+- `sensor.hautomateplus_temperature` - Temperature value
 
-### Testing & Monitoring
+All entities share the same device ID (`hautomateplus_device`) and are grouped together.
 
-Use the included testing tools to verify and monitor your setup:
+## Development
+
+### Building Native Binaries
 
 ```bash
-# Test connection to Home Assistant
+npm run build:native
+```
+
+### Building TypeScript
+
+```bash
+npm run build
+```
+
+### Running Examples
+
+See [src/examples/README.md](src/examples/README.md) for detailed documentation of all examples.
+
+```bash
+# Basic connection
+npm run build && node dist/examples/01-basic-connection.js
+
+# System control
+npm run build && node dist/examples/02-system-control.js
+
+# Custom entities
+npm run example:custom-entities
+
+# Full application
+npm run build && node dist/examples/05-full-app.js
+```
+
+### Testing
+
+```bash
+# Test connection
 npm run test:connection
 
-# Monitor PM2-managed background process
-npm run pm2:monitor
+# Test device info
+npm run test:device-info
 
-# View live logs
-npm run pm2:logs
+# Test shortcuts
+npm run test:shortcut
 ```
 
-See the [testing documentation](./testing/README.md) for detailed troubleshooting guides.
+## PM2 Setup
 
-## Docs
+For production deployment with PM2:
 
-- [📖 Examples](./docs/3-quick-examples.md) - How to use the library
-- [🏠 Home Assistant Setup](./docs/1-home-assistant-setup.md) - Configure Home Assistant
-- [⚙️ Configuration](./docs/2-configuration.md) - Enable/disable features
-- [🚀 PM2 Setup](./docs/4-pm2-setup.md) - Run as standalone service
-- [🧪 Testing & Monitoring](./testing/README.md) - Troubleshooting and monitoring tools
+```bash
+# Install PM2
+npm install -g pm2
 
-## Permissions
+# Start the application
+pm2 start ecosystem.config.js
 
-macOS will ask for Accessibility permissions when you first use system control features. Just click "Allow" - it's needed to control your system. 
-Or manually set them by going into Settings > Privacy & Security > Accessibility and enabling hautomateplus.
+# Monitor
+pm2 monit
 
-## Native Controls
-
-### Volume Control
-
-The volume control uses a native Swift binary for better performance and reliability. It intelligently detects the currently active output device for precise control. Before using volume control features:
-
-1. Build the native binary: `npm run build:native`
-2. The binary will be created at `native/volume/volume_control`
-3. Volume control will automatically use the native implementation
-
-### Shortcut Control
-
-The shortcut control uses a native Swift binary to trigger macOS Shortcuts via the `shortcuts://` URL scheme. This provides a reliable way to execute any Shortcut from your Home Assistant automations. Before using shortcut control features:
-
-1. Build the native binary: `npm run build:native`
-2. The binary will be created at `native/shortcuts/shortcut_control`
-3. Create your shortcuts in the Shortcuts app
-4. Use the exact shortcut name in your commands
-
-**Example:**
-```typescript
-import { ShortcutService } from 'hautomateplus';
-
-// Trigger a shortcut without parameters
-await ShortcutService.trigger('MyShortcut');
-
-// Trigger a shortcut with parameters
-await ShortcutService.trigger('ProcessText', 'Hello from Home Assistant!');
+# View logs
+pm2 logs hautomateplus
 ```
+
+## Documentation
+
+- [Home Assistant Setup](docs/1-home-assistant-setup.md)
+- [Configuration](docs/2-configuration.md)
+- [Quick Examples](docs/3-quick-examples.md)
+- [PM2 Setup](docs/4-pm2-setup.md)
+- [Device Entities](docs/5-device-entities.md)
+
+## License
+
+MIT

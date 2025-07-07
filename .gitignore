@@ -41,3 +41,32 @@ native/shortcuts/.build/
 *.tmp
 *.temp
 .cache/
+
+# Swift build artifacts
+*.swiftmodule
+*.swiftdoc
+*.dSYM
+*.o
+*.a
+*.so
+*.dylib
+
+# Editor backup files
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# PM2 files
+.pm2/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# TypeScript declaration maps
+*.d.ts.map

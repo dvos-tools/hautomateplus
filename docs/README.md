@@ -8,6 +8,8 @@ Quick guides for using the Home Assistant Local Control library.
 2. **[Configuration](./2-configuration.md)** - Enable/disable features
 3. **[Quick Examples](./3-quick-examples.md)** - How to use the library in your code
 4. **[PM2 Setup](./4-pm2-setup.md)** - Run as standalone service
+5. **[Device Entities](./5-device-entities.md)** - Monitor device information
+6. **[Custom Entities](./6-custom-entities.md)** - Create entities from files
 
 ## What This Library Does
 
