@@ -17,6 +17,7 @@
     "pm2:logs": "pm2 logs home-assistant-local-control",
     "pm2:monitor": "node testing/pm2-monitor.js",
     "test:connection": "node testing/test-connection.js",
+    "test:device-info": "node testing/test-device-info.js",
     "clean": "rm -rf dist logs/*.log native/volume/.build native/volume/volume_control native/shortcuts/.build native/shortcuts/shortcut_control"
   },
   "keywords": [

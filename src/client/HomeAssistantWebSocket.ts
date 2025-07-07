@@ -194,12 +194,14 @@ export class HomeAssistantWebSocket extends EventEmitter {
     switch (message.type) {
       case 'auth_required':
         console.log('Authentication required');
+        this.emit('auth_required');
         break;
       case 'auth_ok':
         console.log('Authentication successful');
         this.authenticated = true;
         this.reconnectAttempts = 0;
         this.subscribeToLocalControlEvents();
+        this.emit('auth_ok');
         break;
       case 'auth_invalid':
         console.error('Authentication failed - stopping reconnection attempts');
@@ -237,6 +239,38 @@ export class HomeAssistantWebSocket extends EventEmitter {
 
   public getConnectionStats(): ConnectionStats {
     return this.monitoringService.getStats();
+  }
+
+
+
+  /**
+   * Send a custom event to Home Assistant
+   * @param eventType The type of event
+   * @param eventData The event data
+   */
+  public sendCustomEvent(eventType: string, eventData: Record<string, any>): void {
+    if (!this.authenticated) {
+      console.warn('Not authenticated, cannot send custom event');
+      return;
+    }
+
+    const message = {
+      id: this.msgId++,
+      type: 'fire_event',
+      event_type: eventType,
+      event_data: eventData
+    };
+
+    this.sendMessage(message);
+    console.log(`Custom event sent: ${eventType}`);
+  }
+
+  /**
+   * Check if the WebSocket connection is authenticated and ready
+   * @returns True if authenticated and connected
+   */
+  public isReady(): boolean {
+    return this.authenticated && this.ws.readyState === WebSocket.OPEN;
   }
 
   public close(): void {
