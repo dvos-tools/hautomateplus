@@ -48,7 +48,7 @@ export class DeviceEntityService {
       connectionStatus: `binary_sensor.${this.deviceName}_connection`,
       deviceName: `sensor.${this.deviceName}_device_name`
     };
-    
+
     // Initialize custom entities if provided
     if (customEntityConfig?.enabled && customEntityConfig.entities) {
       this.customEntities = customEntityConfig.entities.map(entity => ({
@@ -57,7 +57,7 @@ export class DeviceEntityService {
       }));
       console.log(`Initialized ${this.customEntities.length} custom entities`);
     }
-    
+
     console.log('Device entities initialized:', this.entities);
     console.log('Device will be created automatically when entities are updated with device information');
   }
@@ -67,14 +67,14 @@ export class DeviceEntityService {
     const lastKnown = this.lastKnownStates[entityId];
     const stateChanged = !lastKnown || lastKnown.state !== state;
     const attributesChanged = !lastKnown || JSON.stringify(lastKnown.attributes) !== JSON.stringify(attributes);
-    
+
     if (!stateChanged && !attributesChanged) {
       console.log(`Entity state and attributes unchanged, skipping update: ${entityId} = ${state}`);
       return;
     }
 
     const url = `${this.baseUrl}/api/states/${entityId}`;
-    
+
     // Add device information to group entities under a single device
     // Home Assistant will automatically create a device when entities share the same device_id
     const deviceAttributes = {
@@ -86,7 +86,7 @@ export class DeviceEntityService {
       sw_version: '1.0.0',
       identifiers: [['hautomateplus', 'hautomateplus']]
     };
-    
+
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -111,12 +111,12 @@ export class DeviceEntityService {
       const expandedPath = filePath.startsWith('~') 
         ? path.join(os.homedir(), filePath.slice(1))
         : filePath;
-      
+
       if (!fs.existsSync(expandedPath)) {
         console.log(`Output file does not exist: ${expandedPath}`);
         return 'unknown';
       }
-      
+
       const content = fs.readFileSync(expandedPath, 'utf8').trim();
       return content || 'unknown';
     } catch (error) {
@@ -128,7 +128,7 @@ export class DeviceEntityService {
   private async registerEntityInRegistry(entity: CustomEntity): Promise<void> {
     const uniqueId = `hautomateplus_${entity.name.toLowerCase().replace(/\s+/g, '_')}`;
     const url = `${this.baseUrl}/api/config/entity_registry/create`;
-    
+
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -147,7 +147,7 @@ export class DeviceEntityService {
           ...(entity.stateClass && { state_class: entity.stateClass })
         })
       });
-      
+
       if (response.ok) {
         console.log(`Registered entity in registry: ${entity.entityId!}`);
       } else {
@@ -164,13 +164,13 @@ export class DeviceEntityService {
       try {
         // Register entity in registry first (if not already registered)
         await this.registerEntityInRegistry(entity);
-        
+
         // Run the shortcut
         await ShortcutService.triggerShortcut(entity.shortcutName);
-        
+
         // Read the output file
         const value = await this.readShortcutOutput(entity.filePath);
-        
+
         // Update the entity
         await this.updateEntity(entity.entityId!, value, {
           friendly_name: `${this.deviceName} ${entity.name}`,

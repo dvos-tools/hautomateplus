@@ -89,10 +89,10 @@ export class MonitoringService {
     this.health.lastHeartbeat = new Date();
     this.health.missedHeartbeats = 0;
     this.stats.currentLatency = latency;
-    
+
     // Update average latency
     this.stats.averageLatency = (this.stats.averageLatency * 0.9) + (latency * 0.1);
-    
+
     // Update connection quality based on latency
     if (latency < 100) {
       this.health.connectionQuality = 'excellent';
