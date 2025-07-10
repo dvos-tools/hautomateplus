@@ -1,89 +1,107 @@
-# 1. Home Assistant Setup
+# Home Assistant Setup
 
-Quick guide to set up Home Assistant to work with this library.
-
-## Create Access Token
-
-1. Go to your Home Assistant instance
-2. Click your username in the sidebar
-3. Scroll down to **Long-Lived Access Tokens**
-4. Click **Create Token**
-5. Name it "Local Control" and copy the token
-
-## Get Your URL
-
-- **Local**: `ws://192.168.1.100:8123/api/websocket`
-- **Cloud**: `wss://home.yourdomain.app/api/websocket`
-- **Local with SSL**: `wss://192.168.1.100:8123/api/websocket`
-
-## Create Test Automation
-
-Add this to your `configuration.yaml`:
+## 1. Add to configuration.yaml
 
 ```yaml
-automation:
-  - alias: "Test Lock Computer"
-    trigger:
-      - platform: event
-        event_type: test_lock
-    action:
-      - service: event.fire
-        data:
-          event_type: local-control
-          event_data:
-            action: lock
-            message: "Locking computer"
+# Add this to your configuration.yaml
+input_boolean:
+  local_control_enabled:
+    name: "Local Control Enabled"
+    icon: mdi:desktop-tower-monitor
+
+# Optional: Add some triggers for testing
+input_boolean:
+  test_lock:
+    name: "Test Lock"
+    icon: mdi:lock
+  test_volume:
+    name: "Test Volume"
+    icon: mdi:volume-high
+  test_notification:
+    name: "Test Notification"
+    icon: mdi:bell
+  test_shortcut:
+    name: "Test Shortcut"
+    icon: mdi:shortcut
 ```
 
-## Test It
+## 2. Create Automations
 
-1. Go to **Developer Tools** → **Events**
-2. Event type: `test_lock`
-3. Click **Fire Event**
-4. Your Mac should lock!
-
-## More Examples
-
+### Lock System
 ```yaml
-# Volume up
+automation:
+  - alias: "Lock System"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.test_lock
+        to: "on"
+    action:
+      - event: local-control
+        event_data:
+          action: lock
+          message: "System locked by automation"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.test_lock
+```
+
+### Volume Control
+```yaml
 automation:
   - alias: "Volume Up"
     trigger:
-      - platform: event
-        event_type: volume_up
+      - platform: state
+        entity_id: input_boolean.test_volume
+        to: "on"
     action:
-      - service: event.fire
-        data:
-          event_type: local-control
-          event_data:
-            action: volumeup
+      - event: local-control
+        event_data:
+          action: volumeup
+          message: "Volume increased"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.test_volume
+```
 
-# Show notification
+### Notifications
+```yaml
+automation:
   - alias: "Show Notification"
     trigger:
-      - platform: event
-        event_type: show_notification
+      - platform: state
+        entity_id: input_boolean.test_notification
+        to: "on"
     action:
-      - service: event.fire
-        data:
-          event_type: local-control
-          event_data:
-            action: notification
-            message: "Hello from Home Assistant!"
+      - event: local-control
+        event_data:
+          action: notification
+          message: "Hello from Home Assistant!"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.test_notification
 ```
 
-## Trigger from Other Automations
-
+### Shortcuts
 ```yaml
-# Lock when leaving home
 automation:
-  - alias: "Lock Computer When Leaving"
+  - alias: "Trigger Shortcut"
     trigger:
       - platform: state
-        entity_id: person.your_name
-        to: "not_home"
+        entity_id: input_boolean.test_shortcut
+        to: "on"
     action:
-      - event: test_lock
+      - event: local-control
+        event_data:
+          action: shortcut
+          message: "FocusMode"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.test_shortcut
 ```
 
-That's it! Your Home Assistant can now control your Mac. 
+## 3. Test
+
+1. Restart Home Assistant
+2. Go to Developer Tools → States
+3. Find your input_boolean entities
+4. Toggle them to test the actions 

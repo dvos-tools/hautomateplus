@@ -1,86 +1,41 @@
-# 2. Configuration
+# Configuration
 
-How to enable/disable specific features.
+## Enable/Disable Actions
 
-## Quick Config
+You can disable specific actions in your code:
 
 ```typescript
 import { setEndpointEnabled } from 'hautomateplus';
 
-// Disable lock feature
+// Disable lock functionality
 setEndpointEnabled('lock', false);
+
+// Disable volume control
+setEndpointEnabled('volumeUp', false);
+setEndpointEnabled('volumeDown', false);
 
 // Disable notifications
 setEndpointEnabled('notification', false);
+
+// Disable shortcuts
+setEndpointEnabled('shortcut', false);
 ```
 
-## All Options
+## Environment Variables
 
-```typescript
-import { updateSystemControlConfig } from 'hautomateplus';
+Create a `.env` file:
 
-updateSystemControlConfig({
-  volumeUp: true,      // Enable volume up
-  volumeDown: true,    // Enable volume down
-  mute: true,          // Enable mute
-  unmute: true,        // Enable unmute
-  lock: false,         // Disable lock
-  notification: false  // Disable notifications
-});
+```env
+HA_URL=ws://192.168.1.100:8123/api/websocket
+HA_ACCESS_TOKEN=your_long_lived_access_token
 ```
 
-## Check Current Config
+## Available Actions
 
-```typescript
-import { getSystemControlConfig } from 'hautomateplus';
-
-const config = getSystemControlConfig();
-console.log(config);
-// { volumeUp: true, volumeDown: true, mute: true, unmute: true, lock: false, notification: false }
-```
-
-## Disable Everything
-
-```typescript
-import { updateSystemControlConfig } from 'hautomateplus';
-
-updateSystemControlConfig({
-  volumeUp: false,
-  volumeDown: false,
-  mute: false,
-  unmute: false,
-  lock: false,
-  notification: false
-});
-```
-
-## Enable Everything
-
-```typescript
-import { updateSystemControlConfig } from 'hautomateplus';
-
-updateSystemControlConfig({
-  volumeUp: true,
-  volumeDown: true,
-  mute: true,
-  unmute: true,
-  lock: true,
-  notification: true
-});
-```
-
-## What Happens When Disabled?
-
-When a feature is disabled, the library will:
-- Log a warning: `"Lock endpoint is disabled"`
-- Skip the command execution
-- Continue running normally
-
-## Use Cases
-
-- **Security**: Disable `lock` in public spaces
-- **Privacy**: Disable `notification` to avoid popups
-- **Testing**: Disable features while testing others
-- **Restrictions**: Disable volume control in certain environments
-
-That's it! Simple on/off switches for each feature. 
+- `lock` - Lock system
+- `volumeup` - Increase volume
+- `volumedown` - Decrease volume
+- `mute` - Mute audio
+- `unmute` - Unmute audio
+- `notification` - Show notification
+- `shortcut` - Trigger shortcut 
