@@ -25,7 +25,7 @@ client.on('local_control_event', async (event) => {
 
 ## What you need
 
-- **macOS** (uses native Swift CoreAudio for volume control, AppleScript for other features)
+- **macOS** (uses native Swift CoreAudio for volume control, AppleScript for shortcuts and other features)
 - **Node.js** 16+
 - **Home Assistant** instance
 - **Accessibility permissions** (macOS will prompt you)
@@ -95,12 +95,11 @@ The volume control uses a native Swift binary for better performance and reliabi
 
 ### Shortcut Control
 
-The shortcut control uses a native Swift binary to trigger macOS Shortcuts via the `shortcuts://` URL scheme. This provides a reliable way to execute any Shortcut from your Home Assistant automations. Before using shortcut control features:
+The shortcut control uses AppleScript to directly interact with the Shortcuts Events application. This provides a reliable way to execute any Shortcut from your Home Assistant automations without requiring native binaries. To use shortcut control features:
 
-1. Build the native binary: `npm run build:native`
-2. The binary will be created at `native/shortcuts/shortcut_control`
-3. Create your shortcuts in the Shortcuts app
-4. Use the exact shortcut name in your commands
+1. Create your shortcuts in the Shortcuts app
+2. Use the exact shortcut name in your commands
+3. The service automatically handles parameter escaping and AppleScript execution
 
 **Example:**
 ```typescript

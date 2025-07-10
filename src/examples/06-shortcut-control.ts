@@ -4,9 +4,10 @@ import { ShortcutService } from '../services/shortcutService';
  * Example: Using Shortcut Control
  * 
  * This example demonstrates how to trigger macOS Shortcuts from TypeScript
+ * using AppleScript with the Shortcuts Events application
  * 
  * Prerequisites:
- * 1. Build the native binary: npm run build:native
+ * 1. macOS with osascript available (should be available by default)
  * 2. Create a shortcut in the Shortcuts app
  * 3. Note the exact name of your shortcut
  */
@@ -14,16 +15,16 @@ import { ShortcutService } from '../services/shortcutService';
 async function shortcutControlExample() {
   console.log('=== Shortcut Control Example ===\n');
 
-  // Check if the native binary is available
+  // Check if osascript is available
   const isAvailable = await ShortcutService.isAvailable();
   if (!isAvailable) {
-    console.error('❌ Native shortcut control binary not found!');
-    console.log('Please build the native binary first: npm run build:native');
+    console.error('❌ osascript not available!');
+    console.log('This should not happen on macOS. Please check your system.');
     return;
   }
 
-  console.log('✅ Native shortcut control binary is available');
-  console.log(`Binary path: ${ShortcutService.getBinaryPath()}\n`);
+  console.log('✅ osascript is available');
+  console.log(`Service info: ${ShortcutService.getServiceInfo()}\n`);
 
   try {
     // Example 1: Trigger a shortcut without parameters
@@ -58,7 +59,7 @@ async function safeShortcutExample() {
   try {
     // Always check availability first
     if (!(await ShortcutService.isAvailable())) {
-      throw new Error('Native binary not available');
+      throw new Error('osascript not available');
     }
 
     // Trigger a shortcut with error handling
@@ -71,7 +72,7 @@ async function safeShortcutExample() {
     // Provide helpful error messages
     if (error instanceof Error) {
       if (error.message.includes('not available')) {
-        console.log('💡 Solution: Run "npm run build:native" to build the binary');
+        console.log('💡 Solution: This should not happen on macOS. Check your system installation.');
       } else if (error.message.includes('Failed to trigger shortcut')) {
         console.log('💡 Solution: Make sure the shortcut name is correct and exists in Shortcuts app');
       }

@@ -6,7 +6,7 @@ export { ShortcutService } from './services/shortcutService';
 export { SystemControlService } from './services/systemControlService';
 export { LockService } from './services/lockService';
 export { NotificationService } from './services/notificationService';
-export { MonitoringService } from './services/monitoringService';
+export { MonitoringService } from './services/MonitoringService';
 export { DeviceInfoService } from './services/deviceInfoService';
 export { DeviceEntityService } from './services/deviceEntityService';
 export { SystemControlApi } from './api/systemControlApi';
